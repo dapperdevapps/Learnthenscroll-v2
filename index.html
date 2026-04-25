@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShooflyAI — AI Employees for Your Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #050d14;
+      color: #f4f9fa;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+
+    /* Atmospheric base layer — soft gradient mesh */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(64,224,208,0.10), transparent 60%),
+        radial-gradient(ellipse 70% 50% at 80% 30%, rgba(0,150,200,0.10), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 50% 80%, rgba(127,255,212,0.08), transparent 60%),
+        linear-gradient(180deg, #050d14 0%, #08151c 50%, #050d14 100%);
+      pointer-events: none;
+    }
+
+    /* Subtle noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+
+    /* Grid backdrop, masked */
+    #app::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(127,255,212,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(127,255,212,0.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 80%);
+    }
+
+    /* Reveal animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s cubic-bezier(0.22,1,0.36,1), transform 1s cubic-bezier(0.22,1,0.36,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    @keyframes spinSlow {
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+    @keyframes floatY {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-12px); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0); opacity: 0.4; }
+      50% { transform: translate(40px, -20px); opacity: 1; }
+    }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Logo ticker */
+    .ticker-wrap {
+      overflow: hidden;
+      width: 100%;
+      padding: 32px 0;
+      position: relative;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .ticker-wrap::before, .ticker-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 160px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .ticker-wrap::before { left: 0; background: linear-gradient(90deg, #050d14, transparent); }
+    .ticker-wrap::after { right: 0; background: linear-gradient(270deg, #050d14, transparent); }
+    .ticker-track {
+      display: flex;
+      gap: 80px;
+      animation: ticker 30s linear infinite;
+      width: max-content;
+      align-items: center;
+    }
+    .ticker-item {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(207,221,224,0.5);
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: color 0.3s;
+    }
+    .ticker-item:hover { color: #7FFFE3; }
+    .ticker-item .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(127,255,212,0.3);
+    }
+
+    /* Section divider */
+    .section-divider {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(127,255,212,0.15), transparent);
+    }
+
+    /* Selection */
+    ::selection { background: rgba(127,255,212,0.3); color: #f4f9fa; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="components/Navbar.jsx"></script>
+<script type="text/babel" src="components/CosmicBackground.jsx"></script>
+<script type="text/babel" src="components/Hero.jsx"></script>
+<script type="text/babel" src="components/ValueProps.jsx"></script>
+<script type="text/babel" src="components/Ownership.jsx"></script>
+<script type="text/babel" src="components/Integrations.jsx"></script>
+<script type="text/babel" src="components/Testimonials.jsx"></script>
+<script type="text/babel" src="components/Process.jsx"></script>
+<script type="text/babel" src="components/Footer.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "showGrid": true,
+  "glowIntensity": 1
+}/*EDITMODE-END*/;
+
+const LogoTicker = () => {
+  const brands = ['Slack', 'HubSpot', 'Salesforce', 'Zapier', 'Google', 'Notion', 'Stripe', 'OpenAI', 'Twilio', 'Airtable', 'Shopify', 'Mailchimp'];
+  const doubled = [...brands, ...brands];
+  return (
+    <div style={{textAlign:'center', padding:'40px 0 0'}}>
+      <span style={{
+        fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600,
+        letterSpacing:'0.16em', color:'rgba(127,255,212,0.6)',
+        display:'block', marginBottom:8,
+      }}>TRUSTED BY TEAMS USING</span>
+      <div className="ticker-wrap">
+        <div className="ticker-track">
+          {doubled.map((b, i) => (
+            <div key={i} className="ticker-item"><span className="dot"></span>{b}</div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <React.Fragment>
+      <Navbar />
+      <HeroSection />
+      <div className="reveal"><LogoTicker /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><ValueProps /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><OwnershipSection /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><Integrations /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><TestimonialsSection /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><ProcessSection /></div>
+      <FooterSection />
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Effects">
+          <TweakToggle label="Grid overlay" value={tweaks.showGrid} onChange={v => setTweak('showGrid', v)} />
+          <TweakSlider label="Glow intensity" min={0} max={2} step={0.1} value={tweaks.glowIntensity} onChange={v => setTweak('glowIntensity', v)} />
+        </TweakSection>
+      </TweaksPanel>
+    </React.Fragment>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+</script>
+</body>
+</html>
