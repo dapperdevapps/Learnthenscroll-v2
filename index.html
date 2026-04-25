@@ -1,636 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LearnThenScroll — Earn Your Feed</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --orange: #FF4D00;
-    --orange-dark: #CC3D00;
-    --orange-light: #FFF0EB;
-    --black: #0E0E0E;
-    --white: #FAFAF8;
-    --gray: #6B6B6B;
-    --border: #E8E5E0;
-  }
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShooflyAI — AI Employees for Your Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #050d14;
+      color: #f4f9fa;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Atmospheric base layer — soft gradient mesh */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(64,224,208,0.10), transparent 60%),
+        radial-gradient(ellipse 70% 50% at 80% 30%, rgba(0,150,200,0.10), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 50% 80%, rgba(127,255,212,0.08), transparent 60%),
+        linear-gradient(180deg, #050d14 0%, #08151c 50%, #050d14 100%);
+      pointer-events: none;
+    }
 
-  html { scroll-behavior: smooth; }
+    /* Subtle noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
 
-  body {
-    background: var(--white);
-    color: var(--black);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
+    /* Grid backdrop, masked */
+    #app::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(127,255,212,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(127,255,212,0.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 80%);
+    }
 
-  /* NAV */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 48px;
-    background: var(--white);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-logo {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 18px; font-weight: 600; color: var(--black);
-    text-decoration: none; letter-spacing: -0.3px;
-  }
-  .nav-logo span { color: var(--orange); }
-  .nav-links { display: flex; align-items: center; gap: 32px; }
-  .nav-links a { color: var(--gray); text-decoration: none; font-size: 14px; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--black); }
-  .nav-cta {
-    background: var(--orange); color: white; border: none; border-radius: 100px;
-    padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer;
-    text-decoration: none; transition: background 0.2s;
-  }
-  .nav-cta:hover { background: var(--orange-dark); }
+    /* Reveal animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s cubic-bezier(0.22,1,0.36,1), transform 1s cubic-bezier(0.22,1,0.36,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-  /* HERO */
-  .hero {
-    min-height: 100vh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center;
-    padding: 120px 24px 80px;
-    position: relative;
-    overflow: hidden;
-  }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    @keyframes spinSlow {
+      from { transform: translate(-50%,-50%) rotate(0deg); }
+      to { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+    @keyframes floatY {
+      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+      50% { transform: translate(-50%, -50%) translateY(-12px); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0); opacity: 0.4; }
+      50% { transform: translate(40px, -20px); opacity: 1; }
+    }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
 
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--orange-light); color: var(--orange-dark);
-    border: 1px solid #FFCBBA; border-radius: 100px;
-    padding: 6px 16px; font-size: 13px; font-weight: 600;
-    margin-bottom: 32px;
-    animation: fadeUp 0.6s ease both;
-  }
-  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+    /* Logo ticker */
+    .ticker-wrap {
+      overflow: hidden;
+      width: 100%;
+      padding: 32px 0;
+      position: relative;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .ticker-wrap::before, .ticker-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 160px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .ticker-wrap::before { left: 0; background: linear-gradient(90deg, #050d14, transparent); }
+    .ticker-wrap::after { right: 0; background: linear-gradient(270deg, #050d14, transparent); }
+    .ticker-track {
+      display: flex;
+      gap: 80px;
+      animation: ticker 30s linear infinite;
+      width: max-content;
+      align-items: center;
+    }
+    .ticker-item {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+      color: rgba(207,221,224,0.5);
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: color 0.3s;
+    }
+    .ticker-item:hover { color: #7FFFE3; }
+    .ticker-item .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(127,255,212,0.3);
+    }
 
-  .hero h1 {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(52px, 8vw, 96px);
-    line-height: 1.0;
-    letter-spacing: -2px;
-    color: var(--black);
-    max-width: 820px;
-    margin-bottom: 24px;
-    animation: fadeUp 0.6s 0.1s ease both;
-  }
-  .hero h1 em {
-    font-style: italic;
-    color: var(--orange);
-  }
+    /* Section divider */
+    .section-divider {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(127,255,212,0.15), transparent);
+    }
 
-  .hero-sub {
-    font-size: clamp(17px, 2.5vw, 21px);
-    color: var(--gray);
-    max-width: 520px;
-    line-height: 1.55;
-    margin-bottom: 48px;
-    animation: fadeUp 0.6s 0.2s ease both;
-  }
+    /* Selection */
+    ::selection { background: rgba(127,255,212,0.3); color: #f4f9fa; }
+      /* ── Mobile Responsive ─────────────────────────── */
+    @media (max-width: 768px) {
+      /* Navbar: hide desktop links + CTA, show hamburger */
+      .nav-cta-desktop { display: none !important; }
+      .nav-hamburger { display: flex !important; }
+      /* Reduce navbar padding */
+      nav[style] { padding: 0 20px !important; }
+      /* Ticker: reduce font size */
+      .ticker-item { font-size: 14px; gap: 8px; }
+      .ticker-wrap { padding: 20px 0; }
+      /* Section dividers */
+      .section-divider { margin: 0 20px; }
+    }
+    @media (min-width: 769px) {
+      /* Desktop: always show links, hide hamburger */
+      .nav-hamburger { display: none !important; }
+    }
 
-  .hero-form {
-    display: flex; gap: 10px;
-    animation: fadeUp 0.6s 0.3s ease both;
-    flex-wrap: wrap; justify-content: center;
-  }
-  .hero-input {
-    padding: 14px 20px; border: 1.5px solid var(--border); border-radius: 100px;
-    font-size: 15px; font-family: 'DM Sans', sans-serif; outline: none;
-    width: 280px; background: white; color: var(--black);
-    transition: border-color 0.2s;
-  }
-  .hero-input:focus { border-color: var(--orange); }
-  .hero-btn {
-    padding: 14px 28px; background: var(--orange); color: white;
-    border: none; border-radius: 100px; font-size: 15px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.2s;
-    white-space: nowrap;
-  }
-  .hero-btn:hover { background: var(--orange-dark); }
-
-  .hero-social-proof {
-    margin-top: 28px; font-size: 13px; color: var(--gray);
-    animation: fadeUp 0.6s 0.4s ease both;
-  }
-  .hero-social-proof strong { color: var(--black); }
-
-  /* Big ticker strip */
-  .ticker-wrap {
-    background: var(--black); color: white; overflow: hidden;
-    padding: 14px 0; margin: 0;
-    border-top: 1px solid #222; border-bottom: 1px solid #222;
-  }
-  .ticker-inner {
-    display: flex; gap: 48px; width: max-content;
-    animation: ticker 28s linear infinite;
-    font-size: 14px; font-weight: 500; letter-spacing: 0.02em;
-  }
-  .ticker-item { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
-  .ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
-  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-  /* PROBLEM SECTION */
-  .section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
-
-  .problem {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
-  }
-  .problem-text .eyebrow {
-    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--orange); margin-bottom: 16px;
-  }
-  .problem-text h2 {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(36px, 4vw, 52px); line-height: 1.1; letter-spacing: -1px;
-    margin-bottom: 20px;
-  }
-  .problem-text p { color: var(--gray); font-size: 17px; line-height: 1.65; margin-bottom: 16px; }
-
-  .phone-mockup {
-    background: var(--black); border-radius: 40px; padding: 16px;
-    max-width: 260px; margin: 0 auto;
-    border: 8px solid #1A1A1A;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.15);
-  }
-  .phone-screen {
-    background: var(--white); border-radius: 28px; overflow: hidden;
-    aspect-ratio: 9/19;
-    display: flex; flex-direction: column;
-  }
-  .phone-status { height: 36px; background: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 10px; color: #999; font-weight: 600; }
-  .phone-content { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-  .pc-logo { font-size: 13px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
-  .pc-logo span { color: var(--orange); }
-  .pc-card { background: var(--orange); border-radius: 14px; padding: 14px; color: white; }
-  .pc-card-tag { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 6px; text-transform: uppercase; }
-  .pc-card-title { font-size: 13px; font-weight: 600; line-height: 1.35; margin-bottom: 8px; }
-  .pc-card-meta { font-size: 9px; opacity: 0.7; }
-  .pc-card-btn { margin-top: 10px; background: rgba(255,255,255,0.2); border-radius: 8px; padding: 7px 12px; font-size: 11px; font-weight: 600; display: inline-block; }
-  .pc-stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-  .pc-stat { background: #F5F3F0; border-radius: 10px; padding: 8px; text-align: center; }
-  .pc-stat-val { font-size: 16px; font-weight: 600; color: var(--black); }
-  .pc-stat-lbl { font-size: 8px; color: #999; margin-top: 1px; }
-  .pc-topic { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
-  .pc-topic-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
-  .pc-topic-name { font-size: 11px; font-weight: 500; color: var(--black); }
-  .pc-topic-meta { font-size: 9px; color: #999; margin-top: 1px; }
-  .pc-topic-arr { margin-left: auto; font-size: 12px; color: #ccc; }
-
-  /* HOW IT WORKS */
-  .how-section { background: var(--black); color: white; padding: 100px 24px; }
-  .how-inner { max-width: 1100px; margin: 0 auto; }
-  .how-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; }
-  .how-h2 {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(36px, 4vw, 56px); line-height: 1.1; letter-spacing: -1px;
-    margin-bottom: 60px; max-width: 600px;
-  }
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-  .step { background: #171717; padding: 40px 32px; position: relative; }
-  .step:first-child { border-radius: 20px 0 0 20px; }
-  .step:last-child { border-radius: 0 20px 20px 0; }
-  .step-num {
-    font-family: 'Instrument Serif', serif; font-size: 72px; line-height: 1;
-    color: #222; margin-bottom: 20px; display: block;
-  }
-  .step-icon { font-size: 28px; margin-bottom: 16px; display: block; }
-  .step h3 { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: white; }
-  .step p { font-size: 15px; color: #888; line-height: 1.6; }
-  .step-accent { color: var(--orange); }
-
-  /* TOPICS SECTION */
-  .topics-section { padding: 100px 24px; background: var(--orange-light); }
-  .topics-inner { max-width: 1100px; margin: 0 auto; }
-  .topics-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange-dark); margin-bottom: 16px; }
-  .topics-h2 {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(36px, 4vw, 56px); line-height: 1.1; letter-spacing: -1px;
-    margin-bottom: 8px; color: var(--black);
-  }
-  .topics-sub { font-size: 17px; color: #9B5A3A; margin-bottom: 48px; }
-  .topics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 40px; }
-  .topic-pill {
-    background: white; border: 1.5px solid #FFCBBA; border-radius: 14px;
-    padding: 16px 18px; display: flex; align-items: flex-start; gap: 10px;
-    transition: border-color 0.2s, transform 0.2s;
-    cursor: default;
-  }
-  .topic-pill:hover { border-color: var(--orange); transform: translateY(-2px); }
-  .tp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; margin-top: 6px; }
-  .tp-name { font-size: 14px; font-weight: 500; color: var(--black); line-height: 1.35; }
-  .tp-cat { font-size: 11px; color: #9B5A3A; margin-top: 3px; }
-  .topics-cta { text-align: center; }
-  .topics-cta p { color: #9B5A3A; font-size: 15px; }
-  .topics-cta strong { color: var(--black); }
-
-  /* SOCIAL PROOF */
-  .proof-section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
-  .proof-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; text-align: center; }
-  .proof-h2 {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(32px, 4vw, 48px); line-height: 1.1; letter-spacing: -1px;
-    margin-bottom: 48px; text-align: center;
-  }
-  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .quote-card {
-    background: white; border: 1px solid var(--border); border-radius: 20px;
-    padding: 28px 24px;
-  }
-  .quote-stars { color: var(--orange); font-size: 14px; margin-bottom: 14px; letter-spacing: 2px; }
-  .quote-text { font-size: 15px; line-height: 1.65; color: var(--black); margin-bottom: 20px; font-style: italic; }
-  .quote-author { display: flex; align-items: center; gap: 10px; }
-  .quote-avatar {
-    width: 36px; height: 36px; border-radius: 50%; background: var(--orange-light);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 600; color: var(--orange-dark);
-    flex-shrink: 0;
-  }
-  .quote-name { font-size: 13px; font-weight: 600; color: var(--black); }
-  .quote-handle { font-size: 12px; color: var(--gray); }
-
-  /* STATS */
-  .stats-bar {
-    background: var(--orange); padding: 60px 24px; text-align: center;
-  }
-  .stats-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-  .stat-item { }
-  .stat-big { font-family: 'Instrument Serif', serif; font-size: clamp(48px, 6vw, 72px); color: white; line-height: 1; letter-spacing: -2px; }
-  .stat-label { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 6px; font-weight: 500; }
-
-  /* FINAL CTA */
-  .final-cta {
-    padding: 120px 24px; text-align: center; background: var(--black);
-    position: relative; overflow: hidden;
-  }
-  .final-cta::before {
-    content: ''; position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 50% 0%, rgba(255,77,0,0.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .final-cta h2 {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(42px, 6vw, 80px); color: white; line-height: 1.05;
-    letter-spacing: -2px; margin-bottom: 20px; max-width: 700px; margin-left: auto; margin-right: auto;
-  }
-  .final-cta h2 em { color: var(--orange); font-style: italic; }
-  .final-cta p { font-size: 18px; color: #888; margin-bottom: 40px; }
-  .final-form { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .final-input {
-    padding: 16px 24px; background: #1A1A1A; border: 1.5px solid #333; border-radius: 100px;
-    font-size: 15px; color: white; font-family: 'DM Sans', sans-serif; outline: none; width: 300px;
-    transition: border-color 0.2s;
-  }
-  .final-input:focus { border-color: var(--orange); }
-  .final-input::placeholder { color: #555; }
-  .final-btn {
-    padding: 16px 32px; background: var(--orange); color: white; border: none; border-radius: 100px;
-    font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: background 0.2s;
-  }
-  .final-btn:hover { background: var(--orange-dark); }
-  .final-note { margin-top: 16px; font-size: 13px; color: #555; }
-
-  /* FOOTER */
-  footer {
-    background: var(--black); border-top: 1px solid #1A1A1A;
-    padding: 32px 48px; display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 16px;
-  }
-  .footer-logo { font-size: 16px; font-weight: 600; color: #444; }
-  .footer-logo span { color: var(--orange); }
-  .footer-links { display: flex; gap: 24px; }
-  .footer-links a { font-size: 13px; color: #444; text-decoration: none; transition: color 0.2s; }
-  .footer-links a:hover { color: #888; }
-
-  /* Animations */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .reveal {
-    opacity: 0; transform: translateY(32px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    nav { padding: 16px 20px; }
-    .nav-links { display: none; }
-    .problem { grid-template-columns: 1fr; gap: 48px; }
-    .phone-mockup { display: none; }
-    .steps { grid-template-columns: 1fr; }
-    .step:first-child { border-radius: 20px 20px 0 0; }
-    .step:last-child { border-radius: 0 0 20px 20px; }
-    .quotes { grid-template-columns: 1fr; }
-    .stats-inner { grid-template-columns: 1fr; gap: 32px; }
-    footer { padding: 24px 20px; }
-  }
-
-  /* ── SHOP SECTION ── */
-  .shop-section { padding: 100px 24px; max-width: 900px; margin: 0 auto; text-align: center; }
-  .shop-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; }
-  .shop-h2 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
-  .shop-sub { font-size: 1.1rem; color: var(--gray); margin-bottom: 56px; }
-  .product-card {
-    display: flex; align-items: center; gap: 40px;
-    background: #fff; border: 1.5px solid #e8e8e8;
-    border-radius: 20px; padding: 40px;
-    text-align: left; position: relative; overflow: hidden;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-  }
-  .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
-  .product-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, var(--orange), #ff8c42);
-  }
-  .product-img-wrap {
-    flex-shrink: 0; width: 180px; height: 180px;
-    background: #f5f5f5; border-radius: 16px;
-    display: flex; align-items: center; justify-content: center; overflow: hidden;
-  }
-  .product-img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
-  .product-img-placeholder {
-    width: 80px; height: 80px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--orange), #ff8c42);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 36px;
-  }
-  .product-info { flex: 1; }
-  .product-badge {
-    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--orange);
-    background: rgba(255,77,0,0.08); border-radius: 6px;
-    padding: 4px 10px; margin-bottom: 12px;
-  }
-  .product-name { font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; line-height: 1.2; }
-  .product-desc { font-size: 0.95rem; color: var(--gray); margin-bottom: 20px; line-height: 1.7; }
-  .product-bullets { list-style: none; padding: 0; margin: 0 0 24px; }
-  .product-bullets li { font-size: 0.9rem; color: #444; padding: 4px 0; }
-  .product-bullets li::before { content: "✓ "; color: var(--orange); font-weight: 700; }
-  .product-cta-btn {
-    display: inline-block; background: var(--orange); color: #fff;
-    font-weight: 700; font-size: 0.95rem; text-decoration: none;
-    padding: 14px 28px; border-radius: 50px;
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
-  .product-cta-btn:hover { background: #e04400; transform: translateY(-1px); }
-  .product-disclaimer { font-size: 11px; color: #bbb; margin-top: 32px; }
-  @media (max-width: 640px) {
-    .product-card { flex-direction: column; text-align: center; }
-    .product-img-wrap { width: 120px; height: 120px; }
-    .product-bullets { text-align: left; }
-  }
-
-</style>
+  </style>
 </head>
 <body>
+<div id="app"></div>
 
-<!-- NAV -->
-<nav>
-  <a class="nav-logo" href="#">learn<span>then</span>scroll</a>
-  <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#topics">Topics</a>
-    <a href="#shop">Shop</a>
-    <a href="#waitlist">Waitlist</a>
-  </div>
-  <a class="nav-cta" href="#waitlist">Join waitlist</a>
-</nav>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-badge"><div class="badge-dot"></div>Now accepting early access signups</div>
-  <h1>Earn your<br><em>scroll time.</em></h1>
-  <p class="hero-sub">Read a 3-minute lesson on something you actually want to learn. Pass a quiz. Then scroll guilt-free.</p>
-  <div class="hero-form">
-    <input class="hero-input" type="email" placeholder="your@email.com" id="hero-email" />
-    <button class="hero-btn" onclick="submitEmail('hero-email', 'hero-thanks')">Join the waitlist →</button>
-  </div>
-  <div class="hero-social-proof" id="hero-thanks"><strong>2,400+ people</strong> already on the waitlist</div>
-</section>
+<script type="text/babel" src="components/Navbar.jsx"></script>
+<script type="text/babel" src="components/CosmicBackground.jsx"></script>
+<script type="text/babel" src="components/Hero.jsx"></script>
+<script type="text/babel" src="components/ValueProps.jsx"></script>
+<script type="text/babel" src="components/Ownership.jsx"></script>
+<script type="text/babel" src="components/Integrations.jsx"></script>
+<script type="text/babel" src="components/Testimonials.jsx"></script>
+<script type="text/babel" src="components/Process.jsx"></script>
+<script type="text/babel" src="components/Footer.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
 
-<!-- TICKER -->
-<div class="ticker-wrap">
-  <div class="ticker-inner" id="ticker"></div>
-</div>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "showGrid": true,
+  "glowIntensity": 1
+}/*EDITMODE-END*/;
 
-<!-- PROBLEM -->
-<div class="section" id="problem">
-  <div class="problem reveal">
-    <div class="problem-text">
-      <div class="eyebrow">The problem</div>
-      <h2>You open Instagram.<br>45 minutes disappear.</h2>
-      <p>You didn't mean to scroll that long. You never do. But the apps are designed to keep you there — and they're better at their job than you are at resisting them.</p>
-      <p>LearnThenScroll flips the script. Before you get to scroll, you learn something. A real idea. From a real topic you chose. Proven by a quiz you have to pass.</p>
-      <p style="color: var(--black); font-weight: 500;">Your feed becomes something you <em>earn</em>.</p>
-    </div>
-    <div class="phone-mockup">
-      <div class="phone-screen">
-        <div class="phone-status"><span>9:41</span><span>●●●</span></div>
-        <div class="phone-content">
-          <div class="pc-logo">learn<span>then</span>scroll</div>
-          <div class="pc-card">
-            <div class="pc-card-tag">📣 Marketing · Today's lesson</div>
-            <div class="pc-card-title">Eugene Schwartz's 5 awareness levels</div>
-            <div class="pc-card-meta">3 min read · 10-question quiz</div>
-            <div class="pc-card-btn">Start reading →</div>
-          </div>
-          <div class="pc-stat-row">
-            <div class="pc-stat"><div class="pc-stat-val">12</div><div class="pc-stat-lbl">Lessons</div></div>
-            <div class="pc-stat"><div class="pc-stat-val">84%</div><div class="pc-stat-lbl">Avg score</div></div>
-            <div class="pc-stat"><div class="pc-stat-val">🔥4</div><div class="pc-stat-lbl">Day streak</div></div>
-          </div>
-          <div style="font-size:10px;color:#999;font-weight:500;margin-top:4px;">More topics</div>
-          <div class="pc-topic"><div class="pc-topic-dot"></div><div><div class="pc-topic-name">Cialdini's 6 principles of influence</div><div class="pc-topic-meta">Psychology · 3 min</div></div><div class="pc-topic-arr">→</div></div>
-          <div class="pc-topic"><div class="pc-topic-dot"></div><div><div class="pc-topic-name">Why index funds beat managers</div><div class="pc-topic-meta">Finance · 3 min</div></div><div class="pc-topic-arr">→</div></div>
+const LogoTicker = () => {
+  const brands = ['Slack', 'HubSpot', 'Salesforce', 'Zapier', 'Google', 'Notion', 'Stripe', 'OpenAI', 'Twilio', 'Airtable', 'Shopify', 'Mailchimp'];
+  const doubled = [...brands, ...brands];
+  return (
+    <div style={{textAlign:'center', padding:'40px 0 0'}}>
+      <span style={{
+        fontFamily:'Inter, sans-serif', fontSize:11, fontWeight:600,
+        letterSpacing:'0.16em', color:'rgba(127,255,212,0.6)',
+        display:'block', marginBottom:8,
+      }}>TRUSTED BY TEAMS USING</span>
+      <div className="ticker-wrap">
+        <div className="ticker-track">
+          {doubled.map((b, i) => (
+            <div key={i} className="ticker-item"><span className="dot"></span>{b}</div>
+          ))}
         </div>
       </div>
     </div>
-  </div>
-</div>
+  );
+};
 
-<!-- HOW IT WORKS -->
-<div class="how-section" id="how">
-  <div class="how-inner">
-    <div class="how-eyebrow reveal">How it works</div>
-    <h2 class="how-h2 reveal">Three steps between you and your feed.</h2>
-    <div class="steps reveal">
-      <div class="step">
-        <span class="step-num">01</span>
-        <span class="step-icon">🔍</span>
-        <h3>Pick a topic</h3>
-        <p>Choose from <span class="step-accent">hundreds of curated topics</span> across marketing, finance, psychology, history, science, and more. Or search for anything — Claude generates a lesson on demand.</p>
-      </div>
-      <div class="step">
-        <span class="step-num">02</span>
-        <span class="step-icon">📖</span>
-        <h3>Read for 3 minutes</h3>
-        <p>A punchy, <span class="step-accent">AI-generated lesson</span> on exactly what you picked. No filler. Dense with real insight. The kind of thing you'll actually remember.</p>
-      </div>
-      <div class="step">
-        <span class="step-num">03</span>
-        <span class="step-icon">✅</span>
-        <h3>Pass the quiz</h3>
-        <p>10 questions. <span class="step-accent">70% to pass.</span> Fail and you re-read. Pass and your feed is earned — guilt-free scrolling, knowing you actually grew today.</p>
-      </div>
-    </div>
-  </div>
-</div>
+const App = () => {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
-<!-- TOPICS -->
-<div class="topics-section" id="topics">
-  <div class="topics-inner">
-    <div class="topics-eyebrow reveal">What you'll learn</div>
-    <h2 class="topics-h2 reveal">From Schwartz to stoicism.<br>Any topic, 3 minutes.</h2>
-    <p class="topics-sub reveal">Search for anything. If it's not in the library, Claude writes it fresh for you.</p>
-    <div class="topics-grid reveal" id="topics-grid"></div>
-    <div class="topics-cta reveal"><p>And <strong>hundreds more</strong> — or just search for anything you're curious about.</p></div>
-  </div>
-</div>
+  React.useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
-<!-- QUOTES -->
-<div class="proof-section" id="proof">
-  <div class="proof-eyebrow reveal">Early reactions</div>
-  <h2 class="proof-h2 reveal">People are already changing<br>how they think about scrolling.</h2>
-  <div class="quotes reveal">
-    <div class="quote-card">
-      <div class="quote-stars">★★★★★</div>
-      <p class="quote-text">"I've tried every app for doomscrolling. This is the first one that actually worked — because it replaces the habit with something I'm proud of instead of just blocking it."</p>
-      <div class="quote-author"><div class="quote-avatar">JR</div><div><div class="quote-name">James R.</div><div class="quote-handle">Marketing manager</div></div></div>
-    </div>
-    <div class="quote-card">
-      <div class="quote-stars">★★★★★</div>
-      <p class="quote-text">"The 3-minute format is genius. I've been going deep on behavioral economics — one lesson at a time. My team keeps asking where I'm getting all these ideas from."</p>
-      <div class="quote-author"><div class="quote-avatar">SK</div><div><div class="quote-name">Sasha K.</div><div class="quote-handle">Startup founder</div></div></div>
-    </div>
-    <div class="quote-card">
-      <div class="quote-stars">★★★★★</div>
-      <p class="quote-text">"I searched 'Eugene Schwartz awareness levels' on a whim. Got a perfect 3-minute breakdown, passed the quiz, and actually understood it. That never happens with YouTube."</p>
-      <div class="quote-author"><div class="quote-avatar">MO</div><div><div class="quote-name">Maria O.</div><div class="quote-handle">Freelance copywriter</div></div></div>
-    </div>
-  </div>
-</div>
+  return (
+    <React.Fragment>
+      <Navbar />
+      <HeroSection />
+      <div className="reveal"><LogoTicker /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><ValueProps /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><OwnershipSection /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><Integrations /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><TestimonialsSection /></div>
+      <div className="section-divider"></div>
+      <div className="reveal"><ProcessSection /></div>
+      <FooterSection />
 
-<!-- STATS -->
-<div class="stats-bar">
-  <div class="stats-inner reveal">
-    <div class="stat-item"><div class="stat-big">3 min</div><div class="stat-label">max lesson length</div></div>
-    <div class="stat-item"><div class="stat-big">70%</div><div class="stat-label">quiz pass threshold</div></div>
-    <div class="stat-item"><div class="stat-big">∞</div><div class="stat-label">topics on demand</div></div>
-  </div>
-</div>
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Effects">
+          <TweakToggle label="Grid overlay" value={tweaks.showGrid} onChange={v => setTweak('showGrid', v)} />
+          <TweakSlider label="Glow intensity" min={0} max={2} step={0.1} value={tweaks.glowIntensity} onChange={v => setTweak('glowIntensity', v)} />
+        </TweakSection>
+      </TweaksPanel>
+    </React.Fragment>
+  );
+};
 
-<!-- SHOP SECTION -->
-<section class="shop-section" id="shop">
-  <p class="shop-eyebrow reveal">Products We Love</p>
-  <h2 class="shop-h2 reveal">Built for people who invest<br>in themselves.</h2>
-  <p class="shop-sub reveal">LTS is about leveling up — and that goes beyond what you know.</p>
-
-  <div class="product-card reveal">
-    <div class="product-img-wrap">
-      <div class="product-img-placeholder">💆</div>
-    </div>
-    <div class="product-info">
-      <span class="product-badge">Skincare Tech</span>
-      <h3 class="product-name">Nu Skin LumiSpa</h3>
-      <p class="product-desc">
-        The LumiSpa is a dual-action cleansing and treatment device that removes up to 10× more
-        dirt, oil, and impurities than manual cleansing alone — while simultaneously tightening
-        and firming your skin. It's the device serious about their skin actually use.
-      </p>
-      <ul class="product-bullets">
-        <li>10× deeper clean than washing by hand</li>
-        <li>Clinically proven firming & tightening effect</li>
-        <li>Gentle enough for all skin types, including sensitive</li>
-        <li>2-minute routine, daily results</li>
-      </ul>
-      <a class="product-cta-btn" href="https://nskn.co/4rIDmY" target="_blank" rel="noopener">
-        Shop LumiSpa →
-      </a>
-    </div>
-  </div>
-
-  <p class="product-disclaimer reveal">This is an affiliate link. We may earn a commission at no extra cost to you.</p>
-</section>
-
-<!-- FINAL CTA -->
-<div class="final-cta" id="waitlist">
-  <h2 class="reveal">Stop scrolling.<br>Start <em>earning</em> it.</h2>
-  <p class="reveal">Join the waitlist. Be first when we launch.</p>
-  <div class="final-form reveal">
-    <input class="final-input" type="email" placeholder="your@email.com" id="final-email" />
-    <button class="final-btn" onclick="submitEmail('final-email', 'final-thanks')">Get early access →</button>
-  </div>
-  <div class="final-note" id="final-thanks">No spam. Just your early access link when we launch.</div>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-logo">learn<span>then</span>scroll</div>
-  <div class="footer-links">
-    <a href="#">Privacy</a>
-    <a href="#">Terms</a>
-    <a href="#">Contact</a>
-  </div>
-</footer>
-
-<script>
-  const topics = [
-    { name: "Eugene Schwartz's 5 awareness levels", cat: "Marketing" },
-    { name: "Cialdini's 6 principles of influence", cat: "Psychology" },
-    { name: "Why index funds beat fund managers", cat: "Finance" },
-    { name: "Stoicism's core idea in 5 minutes", cat: "Philosophy" },
-    { name: "How transformers changed AI forever", cat: "Tech" },
-    { name: "Cal Newport's deep work principles", cat: "Career" },
-    { name: "The sunk cost fallacy explained", cat: "Psychology" },
-    { name: "David Ogilvy's rules for advertising", cat: "Marketing" },
-    { name: "Why sleep is the ultimate performance drug", cat: "Science" },
-    { name: "The rule of 72 and compound interest", cat: "Finance" },
-    { name: "Dunning-Kruger effect explained", cat: "Psychology" },
-    { name: "The innovator's dilemma", cat: "Tech" },
-  ];
-
-  const topicsGrid = document.getElementById('topics-grid');
-  topics.forEach(t => {
-    topicsGrid.innerHTML += `<div class="topic-pill"><div class="tp-dot"></div><div><div class="tp-name">${t.name}</div><div class="tp-cat">${t.cat}</div></div></div>`;
-  });
-
-  const tickerItems = [
-    "Eugene Schwartz awareness levels", "Stoic philosophy", "Index fund investing",
-    "Deep work principles", "Cialdini's influence", "The innovator's dilemma",
-    "Dunning-Kruger effect", "Compound interest", "David Ogilvy's rules",
-    "The gut-brain connection", "Jobs-to-be-done theory", "Memento mori",
-  ];
-  const ticker = document.getElementById('ticker');
-  const doubled = [...tickerItems, ...tickerItems];
-  ticker.innerHTML = doubled.map(t => `<div class="ticker-item"><div class="ticker-dot"></div>${t}</div>`).join('');
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-  function submitEmail(inputId, thanksId) {
-    const input = document.getElementById(inputId);
-    const thanks = document.getElementById(thanksId);
-    if (!input.value.includes('@')) { input.style.borderColor = '#E24B4A'; return; }
-    input.style.display = 'none';
-    const btn = input.nextElementSibling;
-    if (btn) btn.style.display = 'none';
-    thanks.innerHTML = `<strong style="color:var(--orange)">You're on the list!</strong> We'll email you at ${input.value} when we launch.`;
-  }
+ReactDOM.createRoot(document.getElementById('app')).render(<App />);
 </script>
 </body>
 </html>
